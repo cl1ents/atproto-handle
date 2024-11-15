@@ -77,6 +77,8 @@ const protect = (req, res, next) => {
 
 /* Routes */
 
+app.use(express.text())
+
 /**
  * @openapi
  * /well-known/atproto-did:
@@ -266,6 +268,7 @@ app.delete('/', protect, (req, res) => {
 app.post('/claim', IS_PUBLIC ? (a,b,next) => next() : protect, (req, res) => {
   const domain = req.hostname
   const handle = req.body
+  console.log('Received text:', handle);
 
   if (!domain || !handle) {
     res.set('Content-Type', 'text/plain')
