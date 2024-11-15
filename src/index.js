@@ -343,6 +343,11 @@ app.post('/claim', express.text(), (req, res) => {
         res.status(500)
         res.send(`Failed to add did\n${err}`)
       })
+    }).catch(err => {
+      console.error(err)
+      res.set('Content-Type', 'text/plain')
+      res.status(500)
+      res.send(`Failed to add did\n${err}`)
     })
   })
 })
