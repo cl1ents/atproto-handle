@@ -15,7 +15,7 @@ if (!API_KEY) {
   process.exit(1)
 }
 
-const IS_PUBLIC = process.env.IS_PUBLIC === 'true'
+const PUBLIC_DOMAINS = process.env.PUBLIC_DOMAINS.split(',')
 
 const config = new Config("./data/db.json", true, true, "/");
 var db = new JsonDB(config);
@@ -58,6 +58,26 @@ const validateDidOrHandleAndGetDid = async (didOrHandle) => {
   }
 }
 
+/**
+ * Validates a domain against the PUBLIC_DOMAINS environment variable
+ * @param {string} input - The domain to validate
+ * @returns {boolean} True if the domain is valid, false otherwise
+ */
+function validateDomain(input) {
+  const regexPatterns = PUBLIC_DOMAINS.map(domain => {
+    // Convert the wildcard pattern to a regex
+    const escapedDomain = domain.replace(/\./g, '\\.').replace(/\*/g, '[^.]+');
+    return new RegExp(`^${escapedDomain}$`);
+  });
+
+  // Check if the input matches any of the regex patterns
+  return regexPatterns.some(regex => regex.test(input));
+}
+
+function validateProtectedHeaders(req) {
+  return req.headers["api-key"] === API_KEY
+}
+
 /* Middleware */ 
 
 /**
@@ -67,11 +87,11 @@ const validateDidOrHandleAndGetDid = async (didOrHandle) => {
  * @param {function} next - The next middleware function
  */
 const protect = (req, res, next) => {  
-  if (req.headers["api-key"] !== API_KEY) {
+  if (validateProtectedHeaders(req)) {
+    next()
+  } else {
     res.status(401)
     res.send('Unauthorized')
-  } else {
-    next()
   }
 }
 
@@ -234,8 +254,6 @@ app.delete('/', protect, (req, res) => {
  *     operationId: claimDomain
  *     summary: Add a did for the requested domain
  *     description: Adds a did for the requested domain
- *     tags:
- *       - Protected
  *     requestBody:
  *       required: true
  *       content:
@@ -243,8 +261,6 @@ app.delete('/', protect, (req, res) => {
  *           schema:
  *             type: string
  *             example: "did:plc:1234567890 or yourhandle.bsky.app"
- *     security:
- *       - ApiKeyAuth: []
  *     responses:
  *       200:
  *         description: Added the did
@@ -265,8 +281,16 @@ app.delete('/', protect, (req, res) => {
  *             schema:
  *               type: string
  */
-app.post('/claim', IS_PUBLIC ? (a,b,next) => next() : protect, (req, res) => {
+app.post('/claim', (req, res) => {
   const domain = req.hostname
+
+  if (!validateDomain(domain) && !validateProtectedHeaders(req)) {
+    res.set('Content-Type', 'text/plain')
+    res.status(400)
+    res.send(`Domain ${domain} is not allowed`)
+    return
+  }
+
   const handle = req.body
   console.log('Received text:', handle);
 
