@@ -2,6 +2,7 @@ const { HandleResolver } = require('@atproto/identity')
 const { DidResolver } = require('@atproto/identity')
 const express = require('express')
 const { JsonDB, Config } = require('node-json-db')
+const path = require('path');
 
 const app = express()
 
@@ -95,9 +96,20 @@ const protect = (req, res, next) => {
   }
 }
 
-/* Routes */
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
+  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS'); // Allow specific methods
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Api-Key'); // Allow specific headers
 
-app.use(express.text())
+  // For preflight requests (OPTIONS)
+  if (req.method === 'OPTIONS') {
+      res.status(204).end();
+  } else {
+      next();
+  }
+});
+
+/* Routes */
 
 /**
  * @openapi
@@ -127,7 +139,7 @@ app.get('/.well-known/atproto-did', (req, res) => {
     res.set('Content-Type', 'text/plain')
     res.send(value)
   }).catch(err => {
-    console.error(`Tried to redirect to user @${req.hostname} but did not exist (or error occured!!)`) 
+    console.error(`Tried to redirect to user @${req.hostname} but did not exist, error: ${err}`)
     res.status(404)
     res.send(`User "${req.hostname}" not found!`)
   })
@@ -161,11 +173,21 @@ app.get('/', (req, res) => {
     console.log(`Got user @${req.hostname} with did ${value}`)
     res.redirect("https://bsky.app/profile/"+value)
   }).catch(err => {
-    console.error(`Tried to redirect to user @${req.hostname} but did not exist (or error occured!!)`) 
+    console.error(`Tried to redirect to user @${req.hostname} but did not exist, error: ${err}`)
+    res.set('Content-Type', 'text/plain')
     res.status(404)
-    res.send(`User "${req.hostname}" not found!`)
+    res.send(`User "${req.hostname}" not found!\n${err}`)
   })
 })
+
+app.get('/factory', (req, res) => {
+  res.sendFile(path.join(__dirname, 'factory.html'))
+})
+
+app.get('/available-domains', (req, res) => {
+  res.send(PUBLIC_DOMAINS)
+})
+
 
 // Protected routes
 
@@ -200,9 +222,11 @@ app.get('/reload', protect, (req, res) => {
     res.send('Reloaded db')
   }).catch(err => {
     res.set('Content-Type', 'text/plain')
-    console.error(`Failed to reload db`)
+    console.error(`Failed to reload db, error: ${err}`)
+
+    res.set('Content-Type', 'text/plain')
     res.status(500)
-    res.send('Failed to reload db')
+    res.send(`Failed to reload db\n${err}`)
   })
 })
 
@@ -240,10 +264,11 @@ app.delete('/', protect, (req, res) => {
     res.status(200)
     res.send('Removed did')
   }).catch(err => {
-    console.error(`Failed to remove did for domain ${domain}`)
+    console.error(`Failed to remove did for domain ${domain}, error: ${err}`)
+    
     res.set('Content-Type', 'text/plain')
     res.status(500)
-    res.send('Failed to remove did')
+    res.send(`Failed to remove did\n${err}`)
   })
 })
 
@@ -281,7 +306,7 @@ app.delete('/', protect, (req, res) => {
  *             schema:
  *               type: string
  */
-app.post('/claim', (req, res) => {
+app.post('/claim', express.text(), (req, res) => {
   const domain = req.hostname
 
   if (!validateDomain(domain) && !validateProtectedHeaders(req)) {
@@ -313,10 +338,10 @@ app.post('/claim', (req, res) => {
         res.status(200)
         res.send('Added did')
       }).catch(err => {
-        console.error(`Failed to add did for domain ${domain}`)
+        console.error(`Failed to add did for domain ${domain}, error: ${err}`)
         res.set('Content-Type', 'text/plain')
         res.status(500)
-        res.send('Failed to add did')
+        res.send(`Failed to add did\n${err}`)
       })
     })
   })

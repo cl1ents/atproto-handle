@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>fbx' bsky factory</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body>
+    <main class="text-center">
+        <div class="container d-flex flex-column align-items-center justify-content-center align-items-center vh-100">
+            <h1 class="display-3 text-bold">fbx' bsky factory</h1>
+            <h4>This is a simple app for claiming atproto handles.</h4> 
+            <p>You can claim a new handle by entering a domain below and clicking the button.</p> 
+            <hr>
+            <form id="form">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="username" placeholder="Username">
+                    </div>
+                    <div class="col-md-6">
+                        <select id="domain" class="form-select">
+                            <option selected>...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <input type="text" class="form-control" id="current" placeholder="Current handle or DID">
+
+                <div id="messageBox" class="mb-3"></div>
+
+                <button type="submit" class="btn btn-primary" id="submit" disabled>Create</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById("form");
+
+        var clicked = true;
+        fetch("/available-domains")
+            .then(response => response.json())
+            .then(domains => {
+                var select = document.getElementById("domain");
+                select.innerHTML = ""; // Clear existing options
+
+                // Filter wildcard domains and process them
+                for (var domain of domains) {
+                    if (domain.startsWith("*.") && domain.length > 2) {
+                        var cleanedDomain = domain.slice(1);
+                        var option = document.createElement("option");
+                        option.value = cleanedDomain;
+                        option.text = cleanedDomain;
+                        select.appendChild(option);
+                    }
+                }
+
+                clicked = false;
+                document.getElementById("submit").disabled = false;
+            })
+            .catch(error => document.getElementById("messageBox").innerHTML = `Error fetching available domains: ${error}`);
+
+        function submit() {
+            if (clicked)
+                return;
+            var username = document.getElementById("username").value;
+            var domain = document.getElementById("domain").value;
+
+            var current = document.getElementById("current").value;
+
+            if (username == "" || domain == "") {
+                document.getElementById("messageBox").innerHTML = "Please enter a username and domain.";
+                return;
+            }
+            clicked = true;
+            document.getElementById("messageBox").innerHTML = "Trying to claim handle...";
+            fetch(`https://${username}${domain}/claim`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: current
+            }).then(response => {
+                if (response.status == 200) {
+                    document.getElementById("messageBox").innerHTML = "Handle claimed! You can change it in the app.";
+                } else {
+                    document.getElementById("messageBox").innerHTML = `Handle not claimed. ${response.text}`;
+                }
+                clicked = false;
+            }).catch(error => {
+                document.getElementById("messageBox").innerHTML = "Failed to claim handle.";
+                clicked = false;
+            });
+        }
+
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+            submit()
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
