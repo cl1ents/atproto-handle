@@ -8,4 +8,4 @@ services:
     volumes:
       - ./data:/usr/app/data
     ports:
-      - 3000:3000
+      - 3000:3000 
