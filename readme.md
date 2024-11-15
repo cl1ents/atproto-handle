@@ -23,3 +23,12 @@ docker compose up --build -d
 ```
 
 Then you can access it at `localhost:3000`
+
+You can expose your server to `*.your-domain.com` & `your-domain.com` in order to use any domain you own on the bsky network.
+
+## API Documentation
+
+For detailed API documentation, see [API.md](./API.md).
+
+## TODO
+- [] Frontend

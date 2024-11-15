@@ -4,12 +4,14 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "generate-docs": "swagger-jsdoc -d swaggerDefinition.js ./src/* && widdershins --code swagger.json -o API.md"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@atproto/identity": "^0.4.3",
     "express": "^4.21.1",
     "node-json-db": "^2.3.0"
   }
