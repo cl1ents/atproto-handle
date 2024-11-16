@@ -21,7 +21,7 @@ I haven't put this on the docker hub yet, so you'll have to build it yourself.
     }
 }
 ```
-3. Copy the `example.env` file to `.env` and fill in the values (ESPECIALLY THE API_KEY!!)
+3. Copy the `example.env` file to `.env` and fill in the values (ESPECIALLY THE API_KEY and PUBLIC_URL!!)
 4. Run the following command to build & deploy the app as a docker container
 ```bash
 docker compose up --build -d

@@ -419,6 +419,10 @@ createClient(process.env.PUBLIC_URL).then(oauthClient => {
     res.send(`Failed to get session\n${err}`)
   }))
 
+  app.get('/client-metadata.json', (req, res) => {
+    return res.json(oauthClient.clientMetadata)
+  })
+
   app.listen(3000)
   console.log('Server running on port 3000')
 })
