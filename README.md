@@ -39,3 +39,4 @@ For detailed API documentation, see [API.md](./API.md).
 - [x] Frontend
 - [x] Deleting handles
 - [ ] Cleaning up the code
+- [ ] Better database l ol... (a better db than jsondb, so literally anything else)
