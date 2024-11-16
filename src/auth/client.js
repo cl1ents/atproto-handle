@@ -8,11 +8,13 @@ const createClient = async (publicUrl) => {
 
     const sessionStore = {
         db: new Map(),
+        time: new Map(),
 
         async get(sub) {
             return this.db.get(sub);
         },
         async set(sub, session) {
+            this.time.set(sub, Date.now());
             this.db.set(sub, session);
         },
         async del(sub) {
@@ -41,6 +43,24 @@ const createClient = async (publicUrl) => {
             this.db.delete(sub);
         }
     }
+
+    setInterval(() => {
+        // Clear expired states
+        for (const [sub, time] of stateStore.time) {
+            if (time < Date.now() - 3600000) {
+                stateStore.db.delete(sub)
+                stateStore.time.delete(sub)
+            }
+        }
+
+        // Clear expired sessions
+        for (const [sub, time] of sessionStore.time) {
+            if (time < Date.now() - 3600000) {
+                sessionStore.db.delete(sub)
+                sessionStore.time.delete(sub)
+            }
+        }
+    }, 3600000)
 
     return new NodeOAuthClient({
         clientMetadata: {

@@ -482,7 +482,13 @@ createClient(process.env.PUBLIC_URL).then(oauthClient => {
    *           text/html
    */
   app.get('/shredder/callback', async (req, res) => oauthClient.callback(new URLSearchParams(req.originalUrl.split('?')[1])).then(({ session }) => {
-    clearAllHandles(session.did).catch(console.error)
+    clearAllHandles(session.did).then(() => 
+        session.signOut()
+    ).catch(err => {
+      console.error(err)
+      session.signOut()
+    })
+    
 
     return res.redirect(`/shredder?message=${encodeURIComponent("Successfully logged in! Your handle(s) should now be unclaimed.")}`)
   }).catch(err => {
