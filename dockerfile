@@ -20,7 +20,7 @@ WORKDIR /usr/app
 COPY . .
 
 RUN npm install -g pnpm
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # Run the application as a non-root user.
 USER node

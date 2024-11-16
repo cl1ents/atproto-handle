@@ -352,8 +352,7 @@ app.post('/claim', express.text(), (req, res) => {
     res.status(400)
     res.send(`Domain ${domain} already has a did`)
   }).catch(err => 
-    validateDidOrHandleAndGetDid(handle).then(did => getLocalHandle(did))
-    .then(handle => {
+    validateDidOrHandleAndGetDid(handle).then(did => getLocalHandle(did).then(handle => {
       if (handle) {
         res.set('Content-Type', 'text/plain')
         res.status(400)
@@ -376,7 +375,8 @@ app.post('/claim', express.text(), (req, res) => {
       res.set('Content-Type', 'text/plain')
       res.status(500)
       res.send(`Failed to add did\n${err}`)
-    })
+    }))
+    
   )
 })
 
