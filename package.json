@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@atproto/identity": "^0.4.3",
+    "@atproto/oauth-client-node": "^0.2.1",
     "express": "^4.21.1",
     "node-json-db": "^2.3.0"
   }

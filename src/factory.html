@@ -12,8 +12,7 @@
         <div class="container d-flex flex-column align-items-center justify-content-center align-items-center vh-100">
             <h1 class="display-3 text-bold">fbx' bsky factory</h1>
             <h4>This is a simple app for claiming atproto handles.</h4> 
-            <p>You can claim a new handle by entering a domain below and clicking the button.</p> 
-            <hr>
+            <p class="mb-3">You can claim a new handle by entering a username below, choosing a domain and clicking the "Create" button.</p>
             <form id="form">
                 <div class="row g-2 mb-3">
                     <div class="col-md-6">
@@ -21,7 +20,7 @@
                     </div>
                     <div class="col-md-6">
                         <select id="domain" class="form-select">
-                            <option selected>...</option>
+                            <option selected>Loading...</option>
                         </select>
                     </div>
                 </div>
@@ -30,10 +29,37 @@
 
                 <div id="messageBox" class="mb-3"></div>
 
-                <button type="submit" class="btn btn-primary" id="submit" disabled>Create</button>
+                <button type="submit" class="btn btn-primary mb-3" id="submit" disabled>Create</button>
             </form>
+
+            <p class="mb-5"><a href="#" role="button" data-bs-toggle="modal" data-bs-target="#helpModal">Need help?</a></p>
+            <p>Do you wish to get free up your handle or claim a new one? Visit the <a href="/shredder">shredder</a> page.</p>
         </div>
     </main>
+
+    <div class="modal fade" id="helpModal" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">How to claim a handle on Bluesky</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>      
+            <div class="modal-body">
+              <p>To claim a handle on Bluesky, you need to:</p>
+              <ol>
+                <li>Go on your <a href="https://bsky.app/settings" target="_blank">settings page</a> on Bluesky</li>
+                <li>Scroll down to "Change Handle" and click on it</li>
+                <li>Click on "I have my own domain" then "No DNS Panel"</li>
+                <li>Enter the domain you claimed here (e.g. your-username.fbx.sh)</li>
+                <li><b>Make sure you claimed your handle on the <a href="/factory">factory</a> page</b></li>
+                <li>Click "Verify Text File", then "Update to your-username.fbx.sh"</li>
+                <li>Enjoy!</li>
+              </ol>
+              <p>If you have any questions, feel free to PM me on bsky <a href="https://fbx.sh" target="_blank">@fbx.sh</a>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
     <script>
         const form = document.getElementById("form");
@@ -82,12 +108,12 @@
                 },
                 body: current
             }).then(response => {
-                if (response.status == 200) {
-                    document.getElementById("messageBox").innerHTML = "Handle claimed! You can change it in the app.";
-                } else {
-                    document.getElementById("messageBox").innerHTML = `Handle not claimed. ${response.text}`;
-                }
                 clicked = false;
+                if (response.status == 200) {
+                    document.getElementById("messageBox").innerHTML = `Handle claimed! You can change it in the app.`;
+                } else {
+                    response.text().then(text => document.getElementById("messageBox").innerHTML = `Handle not claimed. ${text}`)
+                }
             }).catch(error => {
                 document.getElementById("messageBox").innerHTML = "Failed to claim handle.";
                 clicked = false;

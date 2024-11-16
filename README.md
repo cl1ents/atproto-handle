@@ -36,4 +36,6 @@ You can expose your server to `*.your-domain.com` & `your-domain.com` in order t
 For detailed API documentation, see [API.md](./API.md).
 
 ## TODO
-- [ ] Frontend
+- [x] Frontend
+- [x] Deleting handles
+- [ ] Cleaning up the code

@@ -1,8 +1,8 @@
-const { HandleResolver } = require('@atproto/identity')
-const { DidResolver } = require('@atproto/identity')
+const { HandleResolver, DidResolver } = require('@atproto/identity')
 const express = require('express')
 const { JsonDB, Config } = require('node-json-db')
 const path = require('path');
+const { createClient } = require('./auth/client');
 
 const app = express()
 
@@ -36,6 +36,28 @@ const getLocalDid = async (domain) => {
     return null
   }
   return did
+}
+
+const getLocalHandle = async (did) => {
+  let handle
+  await db.find("/users", (entry, index) => {
+    if (entry === did) {
+      handle = index;
+      return true
+    }
+  })
+  if (!handle) {
+    return null
+  }
+  return handle
+}
+
+const clearAllHandles = async did => {
+  await db.find("/users", (entry, index) => {
+    if (entry === did) {
+      db.delete(`/users/${index}`)
+    }
+  })
 }
 
 /**
@@ -109,6 +131,9 @@ app.use((req, res, next) => {
   }
 });
 
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
 /* Routes */
 
 /**
@@ -178,10 +203,6 @@ app.get('/', (req, res) => {
     res.status(404)
     res.send(`User "${req.hostname}" not found!\n${err}`)
   })
-})
-
-app.get('/factory', (req, res) => {
-  res.sendFile(path.join(__dirname, 'factory.html'))
 })
 
 app.get('/available-domains', (req, res) => {
@@ -330,27 +351,74 @@ app.post('/claim', express.text(), (req, res) => {
     res.set('Content-Type', 'text/plain')
     res.status(400)
     res.send(`Domain ${domain} already has a did`)
-  }).catch(err => {
-    validateDidOrHandleAndGetDid(handle).then(did => {
-      db.push(`/users/${domain}`, did).then(value => {
-        console.log(`Added did for domain ${domain}`)
+  }).catch(err => 
+    validateDidOrHandleAndGetDid(handle).then(did => getLocalHandle(did))
+    .then(handle => {
+      if (handle) {
         res.set('Content-Type', 'text/plain')
-        res.status(200)
-        res.send('Added did')
-      }).catch(err => {
-        console.error(`Failed to add did for domain ${domain}, error: ${err}`)
-        res.set('Content-Type', 'text/plain')
-        res.status(500)
-        res.send(`Failed to add did\n${err}`)
-      })
+        res.status(400)
+        res.send(`This DID already has a handle! ${handle}`)
+      } else {
+        db.push(`/users/${domain}`, did).then(value => {
+          console.log(`Added did for domain ${domain}`)
+          res.set('Content-Type', 'text/plain')
+          res.status(200)
+          res.send('Added did')
+        }).catch(err => {
+          console.error(`Failed to add did for domain ${domain}, error: ${err}`)
+          res.set('Content-Type', 'text/plain')
+          res.status(500)
+          res.send(`Failed to add did\n${err}`)
+        })
+      }
     }).catch(err => {
       console.error(err)
       res.set('Content-Type', 'text/plain')
       res.status(500)
       res.send(`Failed to add did\n${err}`)
     })
-  })
+  )
 })
 
-app.listen(3000)
-console.log('Server running on port 3000')
+// Factory
+
+app.get('/factory', (req, res) => {
+  res.sendFile(path.join(__dirname, 'factory.html'))
+})
+
+// Shredder
+
+app.get('/shredder', async (req, res) => {
+  res.sendFile(path.join(__dirname, 'shredder.html'))
+})
+createClient(process.env.PUBLIC_URL).then(oauthClient => {
+  app.post('/shredder', async (req, res) => {
+    const handle = req.body?.handle
+
+    if (!handle) {
+      res.set('Content-Type', 'text/plain')
+      res.status(400)
+      res.send('Missing handle')
+      return
+    }
+
+    const url = await oauthClient.authorize(handle, {
+      scope: 'atproto',
+    })
+
+    return res.redirect(url.toString())
+  })
+
+  app.get('/shredder/callback', async (req, res) => oauthClient.callback(new URLSearchParams(req.originalUrl.split('?')[1])).then(({ session }) => {
+    clearAllHandles(session.did).catch(console.error)
+
+    return res.redirect(`/shredder?message=${encodeURIComponent("Successfully logged in! Your handle(s) should now be unclaimed.")}`)
+  }).catch(err => {
+    res.set('Content-Type', 'text/plain')
+    res.status(500)
+    res.send(`Failed to get session\n${err}`)
+  }))
+
+  app.listen(3000)
+  console.log('Server running on port 3000')
+})
