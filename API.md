@@ -34,6 +34,161 @@ Base URLs:
 * API Key (ApiKeyAuth)
     - Parameter Name: **api-key**, in: header. 
 
+<h1 id="api-documentation-default">Default</h1>
+
+## claimDomain
+
+<a id="opIdclaimDomain"></a>
+
+`POST /claim`
+
+*Add a did for the requested domain*
+
+Adds a did for the requested domain
+
+> Body parameter
+
+```
+did:plc:1234567890 or yourhandle.bsky.app
+
+```
+
+<h3 id="claimdomain-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|string|true|none|
+
+> Example responses
+
+> 200 Response
+
+```
+"string"
+```
+
+<h3 id="claimdomain-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Added the did|string|
+|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|The domain or handle is missing|string|
+|500|[Internal Server Error](https://tools.ietf.org/html/rfc7231#section-6.6.1)|Failed to add the did|string|
+
+<aside class="success">
+This operation does not require authentication
+</aside>
+
+## shredder
+
+<a id="opIdshredder"></a>
+
+`GET /factory`
+
+*Shredder*
+
+Serves the shredder page
+
+> Example responses
+
+<h3 id="shredder-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|The shredder page|None|
+
+<h3 id="shredder-responseschema">Response Schema</h3>
+
+<aside class="success">
+This operation does not require authentication
+</aside>
+
+## shredderPost
+
+<a id="opIdshredderPost"></a>
+
+`POST /shredder`
+
+*Shredder post*
+
+Handles the shredder form
+
+> Body parameter
+
+```yaml
+handle: string
+
+```
+
+<h3 id="shredderpost-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|object|true|none|
+|» handle|body|string|false|The handle to claim|
+
+> Example responses
+
+<h3 id="shredderpost-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Should redirect to the oauth client|None|
+
+<h3 id="shredderpost-responseschema">Response Schema</h3>
+
+<aside class="success">
+This operation does not require authentication
+</aside>
+
+## shredderCallback
+
+<a id="opIdshredderCallback"></a>
+
+`GET /shredder/callback`
+
+*Shredder callback*
+
+Handles the callback from the oauth client
+
+> Example responses
+
+<h3 id="shreddercallback-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Should redirect to the shredder page|None|
+
+<h3 id="shreddercallback-responseschema">Response Schema</h3>
+
+<aside class="success">
+This operation does not require authentication
+</aside>
+
+## clientMetadata
+
+<a id="opIdclientMetadata"></a>
+
+`GET /client-metadata.json`
+
+*Client metadata*
+
+Returns the client metadata for the oauth client
+
+> Example responses
+
+<h3 id="clientmetadata-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|The client metadata|None|
+
+<h3 id="clientmetadata-responseschema">Response Schema</h3>
+
+<aside class="success">
+This operation does not require authentication
+</aside>
+
 <h1 id="api-documentation-well-known">Well-Known</h1>
 
 ## getWellKnownAtprotoDid
@@ -155,49 +310,5 @@ Reloads the db
 
 <aside class="success">
 This operation does not require authentication
-</aside>
-
-## claimDomain
-
-<a id="opIdclaimDomain"></a>
-
-`POST /claim`
-
-*Add a did for the requested domain*
-
-Adds a did for the requested domain
-
-> Body parameter
-
-```
-did:plc:1234567890 or yourhandle.bsky.app
-
-```
-
-<h3 id="claimdomain-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|body|body|string|true|none|
-
-> Example responses
-
-> 200 Response
-
-```
-"string"
-```
-
-<h3 id="claimdomain-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Added the did|string|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|The domain or handle is missing|string|
-|500|[Internal Server Error](https://tools.ietf.org/html/rfc7231#section-6.6.1)|Failed to add the did|string|
-
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-ApiKeyAuth
 </aside>
 

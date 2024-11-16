@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "generate-docs": "swagger-jsdoc -d swaggerDefinition.js ./src/* && widdershins --code swagger.json -o API.md"
+    "generate-docs": "swagger-jsdoc -d swaggerDefinition.js ./src/index.js && widdershins --code swagger.json -o API.md"
   },
   "keywords": [],
   "author": "",

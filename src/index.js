@@ -38,6 +38,11 @@ const getLocalDid = async (domain) => {
   return did
 }
 
+/**
+ * Gets the local handle for a given did
+ * @param {string} did 
+ * @returns 
+ */
 const getLocalHandle = async (did) => {
   let handle
   await db.find("/users", (entry, index) => {
@@ -52,6 +57,11 @@ const getLocalHandle = async (did) => {
   return handle
 }
 
+/**
+ * Clears all handles for a given did
+ * @param {string} did 
+ * @returns 
+ */
 const clearAllHandles = async did => {
   await db.find("/users", (entry, index) => {
     if (entry === did) {
@@ -382,16 +392,65 @@ app.post('/claim', express.text(), (req, res) => {
 
 // Factory
 
+/**
+ * @openapi
+ * /factory:
+ *   get:
+ *     operationId: factory
+ *     summary: Factory
+ *     description: Serves the factory page
+ *     responses:
+ *       200:
+ *         description: The factory page
+ *         content:
+ *           text/html
+ */
 app.get('/factory', (req, res) => {
   res.sendFile(path.join(__dirname, 'factory.html'))
 })
 
 // Shredder
-
+/**
+ * @openapi
+ * /factory:
+ *   get:
+ *     operationId: shredder
+ *     summary: Shredder
+ *     description: Serves the shredder page
+ *     responses:
+ *       200:
+ *         description: The shredder page
+ *         content:
+ *           text/html
+ */
 app.get('/shredder', async (req, res) => {
   res.sendFile(path.join(__dirname, 'shredder.html'))
 })
 createClient(process.env.PUBLIC_URL).then(oauthClient => {
+
+  /**
+   * @openapi
+   * /shredder:
+   *   post:
+   *     operationId: shredderPost
+   *     summary: Shredder post
+   *     description: Handles the shredder form
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               handle:
+   *                 type: string
+   *                 description: The handle to claim
+   *     responses:
+   *       200:
+   *         description: Should redirect to the oauth client
+   *         content:
+   *           text/html
+   */
   app.post('/shredder', async (req, res) => {
     const handle = req.body?.handle
 
@@ -409,6 +468,19 @@ createClient(process.env.PUBLIC_URL).then(oauthClient => {
     return res.redirect(url.toString())
   })
 
+  /**
+   * @openapi
+   * /shredder/callback:
+   *   get:
+   *     operationId: shredderCallback
+   *     summary: Shredder callback
+   *     description: Handles the callback from the oauth client
+   *     responses:
+   *       200:
+   *         description: Should redirect to the shredder page
+   *         content:
+   *           text/html
+   */
   app.get('/shredder/callback', async (req, res) => oauthClient.callback(new URLSearchParams(req.originalUrl.split('?')[1])).then(({ session }) => {
     clearAllHandles(session.did).catch(console.error)
 
@@ -419,6 +491,19 @@ createClient(process.env.PUBLIC_URL).then(oauthClient => {
     res.send(`Failed to get session\n${err}`)
   }))
 
+  /**
+   * @openapi
+   * /client-metadata.json:
+   *   get:
+   *     operationId: clientMetadata
+   *     summary: Client metadata
+   *     description: Returns the client metadata for the oauth client
+   *     responses:
+   *       200:
+   *         description: The client metadata
+   *         content:
+   *           application/json
+   */
   app.get('/client-metadata.json', (req, res) => {
     return res.json(oauthClient.clientMetadata)
   })
