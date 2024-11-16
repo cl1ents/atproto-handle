@@ -27,7 +27,7 @@ I haven't put this on the docker hub yet, so you'll have to build it yourself.
 docker compose up --build -d
 ```
 
-Then you can access it at `localhost:3000`
+Then you can access it at `localhost:3000/shredder` or `https://your-domain.com/shredder`
 
 You can expose your server to `*.your-domain.com` & `your-domain.com` in order to use any domain you own on the bsky network.
 
