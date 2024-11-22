@@ -78,14 +78,15 @@ const clearAllHandles = async did => {
 const validateDidOrHandleAndGetDid = async (didOrHandle) => {
   if (didOrHandle.startsWith('did:plc:')) {
     const did = await didRes.resolve(didOrHandle)
+
     if (!did) {
-      throw `Did not resolve did ${didOrHandle}`
+      throw `Could not resolve did ${didOrHandle}`
     }
     return did.id
   } else {
     const handle = await handleRes.resolve(didOrHandle)
     if (!handle) {
-      throw `Handle not resolved ${didOrHandle}`
+      throw `Could not resolve handle @${didOrHandle}`
     }
     return handle
   }
@@ -377,7 +378,7 @@ app.post('/claim', express.text(), (req, res) => {
           console.error(`Failed to add did for domain ${domain}, error: ${err}`)
           res.set('Content-Type', 'text/plain')
           res.status(500)
-          res.send(`Failed to add did\n${err}`)
+          res.send(`Failed to add did: ${err}`)
         })
       }
     }).catch(err => {
@@ -385,7 +386,12 @@ app.post('/claim', express.text(), (req, res) => {
       res.set('Content-Type', 'text/plain')
       res.status(500)
       res.send(`Failed to add did\n${err}`)
-    }))
+    })).catch(err => {
+      console.error(err)
+      res.set('Content-Type', 'text/plain')
+      res.status(500)
+      res.send(`Failed to add did: ${err}`)
+    })
     
   )
 })
