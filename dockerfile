@@ -1,30 +1,28 @@
 # syntax=docker/dockerfile:1
 
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Dockerfile reference guide at
-# https://docs.docker.com/go/dockerfile-reference/
-
-# Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
-
-FROM node:20-slim AS base
-
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-
-# Use production node environment by default.
-ENV NODE_ENV production
+FROM oven/bun AS base
 
 WORKDIR /usr/app
 
-# Copy the rest of the source files into the image.
+FROM base AS install
+RUN mkdir -p /temp/dev
+COPY package.json bun.lockb /temp/dev/
+RUN cd /temp/dev && bun install --frozen-lockfile
+
+RUN mkdir -p /temp/prod
+COPY package.json bun.lockb /temp/prod/
+RUN cd /temp/prod && bun install --frozen-lockfile --production
+
+FROM base AS prerelease
+COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
-RUN npm install -g pnpm
-RUN pnpm install --frozen-lockfile
+ENV NODE_ENV=production
 
-# Run the application as a non-root user.
-USER node
+FROM base AS release
+COPY --from=install /temp/prod/node_modules node_modules
+COPY --from=prerelease /usr/app .
 
-
+USER bun
 EXPOSE 3000
-CMD [ "npm", "start" ]
+CMD [ "bun", "start" ]
