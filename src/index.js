@@ -467,11 +467,19 @@ createClient(process.env.PUBLIC_URL).then(oauthClient => {
       return
     }
 
-    const url = await oauthClient.authorize(handle, {
-      scope: 'atproto',
-    })
-
-    return res.redirect(url.toString())
+    try {
+      const url = await oauthClient.authorize(handle, {
+        scope: 'atproto',
+      })
+  
+      return res.redirect(url.toString())
+    } catch (err) {
+      res.set('Content-Type', 'text/plain')
+      res.status(500)
+      res.send(`Failed to get session: ${err}`)
+      console.error(err)
+      return
+    }
   })
 
   /**
